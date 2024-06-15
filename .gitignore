@@ -144,3 +144,6 @@ wip-output-batch-*.txt
 wip-output-combined.txt
 output.json
 output.txt
+# Temporary files and directories
+temp/
+temp/*

@@ -22,7 +22,7 @@ The main steps involved in the transcription correction process are:
 
 ## Running the Script
 
-Ensure you have a input.txt with WebVTT contents.
+Ensure you have a input.txt (with WebVTT contents) in the same folder as the main.py.
 
 To run the script, execute the following command:
 python main.py

@@ -7,7 +7,9 @@ import re
 import shutil
 import aiofiles
 
-
+# Ensure the 'temp' directory exists
+if not os.path.exists('temp'):
+    os.makedirs('temp')
 
 ### PRE
 
@@ -49,11 +51,11 @@ def save_to_json(data, output_file):
 def convert_input_to_json(file_path='input.txt'):
     transcript_data = parse_transcript(f'{file_path}')
     # Ensure the file is created to avoid FileNotFoundError
-    if not os.path.exists('input.json'):
-        with open('input.json', 'w', encoding='utf-8') as file:
+    if not os.path.exists('temp/input.json'):
+        with open('temp/input.json', 'w', encoding='utf-8') as file:
             json.dump([], file, indent=4, ensure_ascii=False)
     
-    save_to_json(transcript_data, 'input.json')
+    save_to_json(transcript_data, 'temp/input.json')
 
 ### PROCESS
 
@@ -92,10 +94,10 @@ def prepare_messages(data, system_message):
 # Process the data in batches
 async def process_data(system_message):
     # Load input data
-    async with aiofiles.open('input.json', 'r') as infile:
+    async with aiofiles.open('temp/input.json', 'r') as infile:
         input_data = await infile.read()
     # Load the working copy data
-    async with aiofiles.open('input.json', 'r') as wipfile:
+    async with aiofiles.open('temp/input.json', 'r') as wipfile:
         wip_data = await wipfile.read()
             
     wip_blocks = parse_data(wip_data)
@@ -108,7 +110,7 @@ async def process_data(system_message):
         print(f"Batch {batch_index + 1} response content: {response_content}")
 
         # Save the raw response content to a file
-        async with aiofiles.open(f'wip-output-batch-{batch_index + 1}.txt', 'w') as outfile:
+        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'w') as outfile:
             await outfile.write(response_content)
 
     tasks = []
@@ -121,10 +123,10 @@ async def process_data(system_message):
     # Combine all batch files into a single file
     combined_content = ""
     for batch_index in range((len(wip_blocks) + batch_size - 1) // batch_size):
-        async with aiofiles.open(f'wip-output-batch-{batch_index + 1}.txt', 'r') as batch_file:
+        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'r') as batch_file:
             combined_content += await batch_file.read()
 
-    async with aiofiles.open('wip-output-combined.txt', 'w') as combined_file:
+    async with aiofiles.open('temp/wip-output-combined.txt', 'w') as combined_file:
         await combined_file.write(combined_content)
 
 ### FINAL
@@ -179,9 +181,9 @@ def parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path):
 def process_all_files_in_current_dir():
     current_dir = os.getcwd()
     print(current_dir)
-    txt_file_path = os.path.join(current_dir, 'wip-output-combined.txt')
-    input_json_path = os.path.join(current_dir, 'input.json')
-    output_json_path = os.path.join(current_dir, 'output.json')
+    txt_file_path = os.path.join(current_dir, 'temp/wip-output-combined.txt')
+    input_json_path = os.path.join(current_dir, 'temp/input.json')
+    output_json_path = os.path.join(current_dir, 'temp/output.json')
 
     # Copy input.json to output.json
     shutil.copy(input_json_path, output_json_path)
@@ -286,4 +288,4 @@ YOU ARE AN EXPERT. BE PERFECT.
     asyncio.run(process_data(system_message))
 
     process_all_files_in_current_dir()
-    convert_json_to_txt("output.json", "output.txt")
+    convert_json_to_txt("temp/output.json", "output.txt")
