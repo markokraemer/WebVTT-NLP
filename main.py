@@ -289,7 +289,7 @@ YOU ARE AN EXPERT. BE PERFECT.
     translator_system_message=""" You are an expert translator specializing in translating German text to English.
     Your main objective is to ensure that the translations are semantically and grammatically accurate so that the sentences make sense. Ensure that you only translate the content and keep the UUID and timestamp unchanged to allow us to reload it into our system.
 
-    You will receive a JSON with multiple objects, each containing a UUID, Timestamp, Line 1, and Line 2 (if applicable). You have to translate Line 1 and Line 2 (if applicable) and return a JSON containing all of the objects translated with their respective UUID, TranslatedLine1, TranslatedLine2 (if applicable). Output in JSON Format.
+    You will receive a JSON with multiple objects, each containing a UUID, Timestamp, Line 1, and Line 2 (if applicable). You have to translate Line 1 and Line 2 (if applicable) and return a JSON containing all of the objects translated with their respective UUID, CorrectedLine1, CorrectedLine2 (if applicable). Output in JSON Format.
 
     <example_input>
     {
@@ -326,27 +326,27 @@ YOU ARE AN EXPERT. BE PERFECT.
     <example_output>
     {
         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
-        "TranslatedLine1": "Wait, the data protection query is",
-        "TranslatedLine2": "now in the chat area and I",
+        "CorrectedLine1": "Wait, the data protection query is",
+        "CorrectedLine2": "now in the chat area and I",
     },
     {
         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
-        "TranslatedLine1": "ask you to respond in the chat area",
-        "TranslatedLine2": "about whether you agree to the",
+        "CorrectedLine1": "ask you to respond in the chat area",
+        "CorrectedLine2": "about whether you agree to the",
     },
     {
         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
-        "TranslatedLine1": "recording or not give a thumbs",
-        "TranslatedLine2": "up. Please in writing.",
+        "CorrectedLine1": "recording or not give a thumbs",
+        "CorrectedLine2": "up. Please in writing.",
     },
     {
         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
-        "TranslatedLine1": "up. Please in writing.",
+        "CorrectedLine1": "up. Please in writing.",
     },
     {
         "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
-        "TranslatedLine1": "Insert it in because then the",
-        "TranslatedLine2": "name is included.",
+        "CorrectedLine1": "Insert it in because then the",
+        "CorrectedLine2": "name is included.",
     },
     </example_output>
 
