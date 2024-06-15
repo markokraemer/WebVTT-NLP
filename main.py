@@ -285,6 +285,76 @@ OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.
 YOU ARE AN EXPERT. BE PERFECT.
 
 """
+   
+    translator_system_message=""" You are an expert translator specializing in translating German text to English.
+    Your main objective is to ensure that the translations are semantically and grammatically accurate so that the sentences make sense. Ensure that you only translate the content and keep the UUID and timestamp unchanged to allow us to reload it into our system.
+
+    You will receive a JSON with multiple objects, each containing a UUID, Timestamp, Line 1, and Line 2 (if applicable). You have to translate Line 1 and Line 2 (if applicable) and return a JSON containing all of the objects translated with their respective UUID, TranslatedLine1, TranslatedLine2 (if applicable). Output in JSON Format.
+
+    <example_input>
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+        "Timestamp": "00:00:02.280 --> 00:00:06.430",
+        "Line1": "Wartet Datenschutzabfrage steht",
+        "Line2": "jetzt im Chatbereich und ich",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+        "Timestamp": "00:00:06.430 --> 00:00:10.648",
+        "Line1": "bitte euch im Chatbereich darauf",
+        "Line2": "zu antworten, ob ihr mit der",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+        "Timestamp": "00:00:10.648 --> 00:00:14.527",
+        "Line1": "Aufnahme einverstanden seid",
+        "Line2": "beziehungsweise keine Daumen",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+        "Timestamp": "00:00:14.527 --> 00:00:16.160",
+        "Line1": "hoch. Bitte schriftlich.",
+    },
+    {
+        "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+        "Timestamp": "00:00:16.990 --> 00:00:18.670",
+        "Line1": "Reinsetzen, weil dann ist der",
+        "Line2": "Name dabei.",
+    },
+    </example_input>
+
+    <example_output>
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+        "TranslatedLine1": "Wait, the data protection query is",
+        "TranslatedLine2": "now in the chat area and I",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+        "TranslatedLine1": "ask you to respond in the chat area",
+        "TranslatedLine2": "about whether you agree to the",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+        "TranslatedLine1": "recording or not give a thumbs",
+        "TranslatedLine2": "up. Please in writing.",
+    },
+    {
+        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+        "TranslatedLine1": "up. Please in writing.",
+    },
+    {
+        "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+        "TranslatedLine1": "Insert it in because then the",
+        "TranslatedLine2": "name is included.",
+    },
+    </example_output>
+
+    OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.
+
+    YOU ARE AN EXPERT. BE PERFECT.
+    """
+   
     asyncio.run(process_data(system_message))
 
     process_all_files_in_current_dir()
