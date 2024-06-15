@@ -6,6 +6,7 @@ import json
 import re
 import shutil
 import aiofiles
+import streamlit as st
 
 # Ensure the 'temp' directory exists
 if not os.path.exists('temp'):
@@ -211,151 +212,241 @@ def convert_json_to_txt(json_path, txt_path):
                     txt_file.write(f"{item['Line2']}\n")
                 txt_file.write("\n")
 
+# Streamlit UI
+st.title("Transcript Correction")
 
-if __name__ == "__main__":
-    convert_input_to_json()
-
-    system_message = """ You are an expert proofreader and corrector specializing in correcting machine-generated transcripts.
+uploaded_file = st.file_uploader("Upload input.txt", type="txt")
+system_message = st.text_area("System Message", value=""" You are an expert proofreader and corrector specializing in correcting machine-generated transcripts.
 Your main objective is correcting German text to be semantically and grammatically accurate so that the sentences make sense. Ensure that you only fix the machine-translated content and keep the UUID and timestamp unchanged to allow us to reload it into our system. 
-
+""")
+system_message += """
 You will receive a JSON with multiple objects, each containing an UUID, Timestamp, Line 1 & Line 2 (if applicable). You have to correct Line 1 & Line 2 (if applicable) and return a JSON containing all of the Objects corrected with its respective UUID, CorrectedLine1, CorrectedLine2 (if applicable). Output in JSON Format. 
- 
+
 <example_input>
 {
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
     "Timestamp": "00:00:02.280 --> 00:00:06.430",
     "Line1": "Wartet Datenschutzabfrage steht",
     "Line2": "jetzt im Chatbereich und ich",
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
     "Timestamp": "00:00:06.430 --> 00:00:10.648",
     "Line1": "bitte euch im Chatbereich darauf",
     "Line2": "zu antworten, ob ihr mit der",
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
     "Timestamp": "00:00:10.648 --> 00:00:14.527",
     "Line1": "Aufnahme einverstanden seid",
     "Line2": "beziehungsweise keine Daumen",
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
     "Timestamp": "00:00:14.527 --> 00:00:16.160",
     "Line1": "hoch. Bitte schriftlich.",
-  },
-  {
+},
+{
     "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
     "Timestamp": "00:00:16.990 --> 00:00:18.670",
     "Line1": "Reinsetzen, weil dann ist der",
     "Line2": "Name dabei.",
-  },
-  </example_input>
+},
+</example_input>
 
-  <example_output>
+<example_output>
 {
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
     "CorrectedLine1": "Wartet, die Datenschutzabfrage steht",
     "CorrectedLine2": "jetzt im Chatbereich und ich"
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
     "CorrectedLine1": "Ich bitte euch, im Chatbereich darauf",
     "CorrectedLine2": "zu antworten, ob ihr mit der"
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
     "CorrectedLine1": "Aufnahme einverstanden seid",
     "CorrectedLine2": "beziehungsweise keine Daumen"
-  },
-  {
+},
+{
     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
     "Line1": "hoch. Bitte schriftlich.",
     "CorrectedLine1": "hoch. Bitte schriftlich."
-  },
-  {
+},
+{
     "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
     "CorrectedLine1": "Reinsetzen, weil dann ist der",
     "CorrectedLine2": "Name dabei."
-  },
+},
 </example_output>
 
 OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.               
 
 YOU ARE AN EXPERT. BE PERFECT.
-
 """
+
+if st.button("Process"):
+    if uploaded_file is not None:
+        with open("temp/input.txt", "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        convert_input_to_json("temp/input.txt")
+        asyncio.run(process_data(system_message))
+        process_all_files_in_current_dir()
+        convert_json_to_txt("temp/output.json", "temp/output.txt")
+        st.success("Processing complete. You can now download the output file.")
+
+        with open("temp/output.txt", "rb") as f:
+            st.download_button("Download output.txt", f, file_name="output.txt")
+
+
+# if __name__ == "__main__":
+#     convert_input_to_json()
+
+#     system_message = """ You are an expert proofreader and corrector specializing in correcting machine-generated transcripts.
+# Your main objective is correcting German text to be semantically and grammatically accurate so that the sentences make sense. Ensure that you only fix the machine-translated content and keep the UUID and timestamp unchanged to allow us to reload it into our system. 
+
+# You will receive a JSON with multiple objects, each containing an UUID, Timestamp, Line 1 & Line 2 (if applicable). You have to correct Line 1 & Line 2 (if applicable) and return a JSON containing all of the Objects corrected with its respective UUID, CorrectedLine1, CorrectedLine2 (if applicable). Output in JSON Format. 
+ 
+# <example_input>
+# {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+#     "Timestamp": "00:00:02.280 --> 00:00:06.430",
+#     "Line1": "Wartet Datenschutzabfrage steht",
+#     "Line2": "jetzt im Chatbereich und ich",
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+#     "Timestamp": "00:00:06.430 --> 00:00:10.648",
+#     "Line1": "bitte euch im Chatbereich darauf",
+#     "Line2": "zu antworten, ob ihr mit der",
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+#     "Timestamp": "00:00:10.648 --> 00:00:14.527",
+#     "Line1": "Aufnahme einverstanden seid",
+#     "Line2": "beziehungsweise keine Daumen",
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+#     "Timestamp": "00:00:14.527 --> 00:00:16.160",
+#     "Line1": "hoch. Bitte schriftlich.",
+#   },
+#   {
+#     "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+#     "Timestamp": "00:00:16.990 --> 00:00:18.670",
+#     "Line1": "Reinsetzen, weil dann ist der",
+#     "Line2": "Name dabei.",
+#   },
+#   </example_input>
+
+#   <example_output>
+# {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+#     "CorrectedLine1": "Wartet, die Datenschutzabfrage steht",
+#     "CorrectedLine2": "jetzt im Chatbereich und ich"
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+#     "CorrectedLine1": "Ich bitte euch, im Chatbereich darauf",
+#     "CorrectedLine2": "zu antworten, ob ihr mit der"
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+#     "CorrectedLine1": "Aufnahme einverstanden seid",
+#     "CorrectedLine2": "beziehungsweise keine Daumen"
+#   },
+#   {
+#     "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+#     "Line1": "hoch. Bitte schriftlich.",
+#     "CorrectedLine1": "hoch. Bitte schriftlich."
+#   },
+#   {
+#     "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+#     "CorrectedLine1": "Reinsetzen, weil dann ist der",
+#     "CorrectedLine2": "Name dabei."
+#   },
+# </example_output>
+
+# OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.               
+
+# YOU ARE AN EXPERT. BE PERFECT.
+
+# """
    
-    translator_system_message=""" You are an expert translator specializing in translating German text to English.
-    Your main objective is to ensure that the translations are semantically and grammatically accurate so that the sentences make sense. Ensure that you only translate the content and keep the UUID and timestamp unchanged to allow us to reload it into our system.
+#     translator_system_message=""" You are an expert translator specializing in translating German text to English.
+#     Your main objective is to ensure that the translations are semantically and grammatically accurate so that the sentences make sense. Ensure that you only translate the content and keep the UUID and timestamp unchanged to allow us to reload it into our system.
 
-    You will receive a JSON with multiple objects, each containing a UUID, Timestamp, Line 1, and Line 2 (if applicable). You have to translate Line 1 and Line 2 (if applicable) and return a JSON containing all of the objects translated with their respective UUID, CorrectedLine1, CorrectedLine2 (if applicable). Output in JSON Format.
+#     You will receive a JSON with multiple objects, each containing a UUID, Timestamp, Line 1, and Line 2 (if applicable). You have to translate Line 1 and Line 2 (if applicable) and return a JSON containing all of the objects translated with their respective UUID, CorrectedLine1, CorrectedLine2 (if applicable). Output in JSON Format.
 
-    <example_input>
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
-        "Timestamp": "00:00:02.280 --> 00:00:06.430",
-        "Line1": "Wartet Datenschutzabfrage steht",
-        "Line2": "jetzt im Chatbereich und ich",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
-        "Timestamp": "00:00:06.430 --> 00:00:10.648",
-        "Line1": "bitte euch im Chatbereich darauf",
-        "Line2": "zu antworten, ob ihr mit der",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
-        "Timestamp": "00:00:10.648 --> 00:00:14.527",
-        "Line1": "Aufnahme einverstanden seid",
-        "Line2": "beziehungsweise keine Daumen",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
-        "Timestamp": "00:00:14.527 --> 00:00:16.160",
-        "Line1": "hoch. Bitte schriftlich.",
-    },
-    {
-        "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
-        "Timestamp": "00:00:16.990 --> 00:00:18.670",
-        "Line1": "Reinsetzen, weil dann ist der",
-        "Line2": "Name dabei.",
-    },
-    </example_input>
+#     <example_input>
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+#         "Timestamp": "00:00:02.280 --> 00:00:06.430",
+#         "Line1": "Wartet Datenschutzabfrage steht",
+#         "Line2": "jetzt im Chatbereich und ich",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+#         "Timestamp": "00:00:06.430 --> 00:00:10.648",
+#         "Line1": "bitte euch im Chatbereich darauf",
+#         "Line2": "zu antworten, ob ihr mit der",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+#         "Timestamp": "00:00:10.648 --> 00:00:14.527",
+#         "Line1": "Aufnahme einverstanden seid",
+#         "Line2": "beziehungsweise keine Daumen",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+#         "Timestamp": "00:00:14.527 --> 00:00:16.160",
+#         "Line1": "hoch. Bitte schriftlich.",
+#     },
+#     {
+#         "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+#         "Timestamp": "00:00:16.990 --> 00:00:18.670",
+#         "Line1": "Reinsetzen, weil dann ist der",
+#         "Line2": "Name dabei.",
+#     },
+#     </example_input>
 
-    <example_output>
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
-        "CorrectedLine1": "Wait, the data protection query is",
-        "CorrectedLine2": "now in the chat area and I",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
-        "CorrectedLine1": "ask you to respond in the chat area",
-        "CorrectedLine2": "about whether you agree to the",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
-        "CorrectedLine1": "recording or not give a thumbs",
-        "CorrectedLine2": "up. Please in writing.",
-    },
-    {
-        "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
-        "CorrectedLine1": "up. Please in writing.",
-    },
-    {
-        "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
-        "CorrectedLine1": "Insert it in because then the",
-        "CorrectedLine2": "name is included.",
-    },
-    </example_output>
+#     <example_output>
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-0",
+#         "CorrectedLine1": "Wait, the data protection query is",
+#         "CorrectedLine2": "now in the chat area and I",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-1",
+#         "CorrectedLine1": "ask you to respond in the chat area",
+#         "CorrectedLine2": "about whether you agree to the",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-2",
+#         "CorrectedLine1": "recording or not give a thumbs",
+#         "CorrectedLine2": "up. Please in writing.",
+#     },
+#     {
+#         "UUID": "9aad3f5c-a5e7-40b2-bd76-4eba2aa0d70a-3",
+#         "CorrectedLine1": "up. Please in writing.",
+#     },
+#     {
+#         "UUID": "db7b7615-3c6e-491a-97fc-e96b469dd9f7-0",
+#         "CorrectedLine1": "Insert it in because then the",
+#         "CorrectedLine2": "name is included.",
+#     },
+#     </example_output>
 
-    OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.
+#     OUTPUT EVERYTHING NOT JUST 1! ALL OF THEM. EVERY OBJECT.
 
-    YOU ARE AN EXPERT. BE PERFECT.
-    """
+#     YOU ARE AN EXPERT. BE PERFECT.
+#     """
    
-    asyncio.run(process_data(system_message))
+#     asyncio.run(process_data(system_message))
 
-    process_all_files_in_current_dir()
-    convert_json_to_txt("temp/output.json", "output.txt")
+#     process_all_files_in_current_dir()
+#     convert_json_to_txt("temp/output.json", "output.txt")
+
+
