@@ -1,4 +1,4 @@
-# WebVTT-nlp-processor 
+# WebVTT NLP 
 
 This project is a tool to use NLP with Web Video Text Tracks Format (WebVTT) to batch process big Meeting Transcripts and automatically correct the transcripts using a LLM. 
 
