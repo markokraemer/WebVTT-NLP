@@ -15,7 +15,7 @@ if not os.path.exists('temp'):
 ### PRE
 
 def parse_transcript(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
         lines = file.readlines()
 
     data = []
@@ -46,14 +46,14 @@ def parse_transcript(file_path):
     return data
 
 def save_to_json(data, output_file):
-    with open(output_file, 'w', encoding='utf-8') as file:
+    with open(output_file, 'w', encoding='utf-8', errors='replace') as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
 def convert_input_to_json(file_path='input.txt'):
     transcript_data = parse_transcript(f'{file_path}')
     # Ensure the file is created to avoid FileNotFoundError
     if not os.path.exists('temp/input.json'):
-        with open('temp/input.json', 'w', encoding='utf-8') as file:
+        with open('temp/input.json', 'w', encoding='utf-8', errors='replace') as file:
             json.dump([], file, indent=4, ensure_ascii=False)
     
     save_to_json(transcript_data, 'temp/input.json')
@@ -95,10 +95,10 @@ def prepare_messages(data, system_message):
 # Process the data in batches
 async def process_data(system_message):
     # Load input data
-    async with aiofiles.open('temp/input.json', 'r') as infile:
+    async with aiofiles.open('temp/input.json', 'r', encoding='utf-8', errors='replace') as infile:
         input_data = await infile.read()
     # Load the working copy data
-    async with aiofiles.open('temp/input.json', 'r') as wipfile:
+    async with aiofiles.open('temp/input.json', 'r', encoding='utf-8', errors='replace') as wipfile:
         wip_data = await wipfile.read()
             
     wip_blocks = parse_data(wip_data)
@@ -106,12 +106,12 @@ async def process_data(system_message):
 
     async def process_batch(batch, batch_index, system_message):
         messages = prepare_messages(batch, system_message)
-        response = await make_llm_api_call(messages, "gpt-4o", max_tokens=4096, temperature=0.4)
+        response = await make_llm_api_call(messages, "gpt-3.5-turbo", max_tokens=4096, temperature=0.4)
         response_content = response.choices[0].message['content']
         print(f"Batch {batch_index + 1} response content: {response_content}")
 
         # Save the raw response content to a file
-        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'w') as outfile:
+        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'w', encoding='utf-8', errors='replace') as outfile:
             await outfile.write(response_content)
 
     tasks = []
@@ -124,17 +124,17 @@ async def process_data(system_message):
     # Combine all batch files into a single file
     combined_content = ""
     for batch_index in range((len(wip_blocks) + batch_size - 1) // batch_size):
-        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'r') as batch_file:
+        async with aiofiles.open(f'temp/wip-output-batch-{batch_index + 1}.txt', 'r', encoding='utf-8', errors='replace') as batch_file:
             combined_content += await batch_file.read()
 
-    async with aiofiles.open('temp/wip-output-combined.txt', 'w') as combined_file:
+    async with aiofiles.open('temp/wip-output-combined.txt', 'w', encoding='utf-8', errors='replace') as combined_file:
         await combined_file.write(combined_content)
 
 ### FINAL
 
 def parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path):
     # Read the contents of the .txt file
-    with open(txt_file_path, 'r', encoding='utf-8') as txt_file:
+    with open(txt_file_path, 'r', encoding='utf-8', errors='replace') as txt_file:
         txt_content = txt_file.read()
     print(f"Read txt file: {txt_file_path}")
 
@@ -144,7 +144,7 @@ def parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path):
     print(f"Found matches: {matches}")
 
     # Read the input JSON file
-    with open(input_json_path, 'r', encoding='utf-8') as json_file:
+    with open(input_json_path, 'r', encoding='utf-8', errors='replace') as json_file:
         json_data = json.load(json_file)
     print(f"Loaded JSON data from: {input_json_path}")
 
@@ -153,8 +153,8 @@ def parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path):
         try:
             item = json.loads("{" + match + "}")
             uuid = item.get("UUID")
-            corrected_line1 = item.get("CorrectedLine1", "").strip()
-            corrected_line2 = item.get("CorrectedLine2", "").strip()
+            corrected_line1 = item.get("CorrectedLine1", "").strip() if item.get("CorrectedLine1") else ""
+            corrected_line2 = item.get("CorrectedLine2", "").strip() if item.get("CorrectedLine2") else ""
             print(f"Processing item: {item}")
 
             found = False
@@ -175,7 +175,7 @@ def parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path):
             continue
 
     # Write the updated JSON data to the output file
-    with open(output_json_path, 'w', encoding='utf-8') as json_file:
+    with open(output_json_path, 'w', encoding='utf-8', errors='replace') as json_file:
         json.dump(json_data, json_file, ensure_ascii=False, indent=4)
     print(f"Updated JSON data written to: {output_json_path}")
 
@@ -193,10 +193,10 @@ def process_all_files_in_current_dir():
     parse_txt_and_update_json(txt_file_path, input_json_path, output_json_path)
 
 def convert_json_to_txt(json_path, txt_path):
-    with open(json_path, 'r', encoding='utf-8') as json_file:
+    with open(json_path, 'r', encoding='utf-8', errors='replace') as json_file:
         json_data = json.load(json_file)
 
-    with open(txt_path, 'w', encoding='utf-8') as txt_file:
+    with open(txt_path, 'w', encoding='utf-8', errors='replace') as txt_file:
         txt_file.write("WEBVTT\n\n")
         for item in json_data:
             if "UUID" in item and "Timestamp" in item:
