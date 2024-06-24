@@ -106,7 +106,7 @@ async def process_data(system_message):
 
     async def process_batch(batch, batch_index, system_message):
         messages = prepare_messages(batch, system_message)
-        response = await make_llm_api_call(messages, "gpt-3.5-turbo", max_tokens=4096, temperature=0.4)
+        response = await make_llm_api_call(messages, "gpt-4o", max_tokens=4096, temperature=0.4)
         response_content = response.choices[0].message['content']
         print(f"Batch {batch_index + 1} response content: {response_content}")
 
